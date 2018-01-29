@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Hello World</title>
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+    ReactDOM.render(
+            <div>
+                <H1 text="My first js home work" align="center"/>
+                <P text = "What is the text to fill the field"/>
+                <Button name = "click me"/>
+            </div>
+        , document.getElementById('root'));
+
+    function H1(props) {
+        return (
+            <div>
+                <h1 align={props.align}>{props.text}</h1>
+            </div>
+        )
+    }
+
+    function P(props) {
+        return (
+            <div>
+                <p>{props.text}</p>
+            </div>
+        )
+    }
+
+    function Button(props) {
+        return (
+            <div>
+                <button onClick={clickButtonFunction}>{props.name}</button>
+            </div>
+        )
+
+    }
+
+    function clickButtonFunction() {
+        alert("the first, second, third calculation is over")
+    }
+</script>
+</body>
+</html>
