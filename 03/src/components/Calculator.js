@@ -1,112 +1,151 @@
 import React, {Component} from 'react'
 import CalcKey from './CalcKey'
 
+const CalculatorOperations = {
+    '/': (prevValue, nextValue) => prevValue / nextValue,
+    '*': (prevValue, nextValue) => prevValue * nextValue,
+    '+': (prevValue, nextValue) => prevValue + nextValue,
+    '-': (prevValue, nextValue) => prevValue - nextValue
+}
 
 export default class Calculator extends Component {
 
+
     state = {
-        value: null,
-        displayValue: '0',
+        backValue: null,
         operator: null,
-        waitingForOperand: false
+        displayValue: '0'
     };
 
-    clearAll() {
+    _number = btnNumber => {
+        const {displayValue} = this.state
         this.setState({
-            value: null,
-            displayValue: '0',
-            operator: null,
-            waitingForOperand: false
+            displayValue: displayValue === '0' ? String(btnNumber) : displayValue + btnNumber
         })
     }
 
-    inputDigit(digit) {
-        const {displayValue,waitingForOperand } = this.state
 
-        if (waitingForOperand) {
+    _clearAll = () => {
+        this.setState({
+            backValue: null,
+            displayValue: '0',
+            operator: null
+        })
+    }
+
+    calculateOperation = () => {
+        const {backValue, displayValue, operator} = this.state
+        const inputValue = parseFloat(displayValue)
+        const currentValue = backValue || 0
+        if (backValue != null) {
             this.setState({
-                displayValue: String(digit),
-                waitingForOperand: false
-            })
-        } else {
-            this.setState({
-                displayValue: displayValue === '0' ? String(digit) : displayValue + digit
+                displayValue: CalculatorOperations[operator](currentValue, inputValue),
+                backValue: null,
+                operator: null
             })
         }
     }
 
-    performOperation(nextOperator) {
-        const { value, displayValue, operator } = this.state
+    performOperation = nextOperator => {
+        const {backValue, displayValue, operator} = this.state
         const inputValue = parseFloat(displayValue)
-        const CalculatorOperations = {
-            '/': (prevValue, nextValue) => prevValue / nextValue,
-            '*': (prevValue, nextValue) => prevValue * nextValue,
-            '+': (prevValue, nextValue) => prevValue + nextValue,
-            '-': (prevValue, nextValue) => prevValue - nextValue,
-            '=': (prevValue, nextValue) => nextValue
-        }
-        if (value == null) {
+
+        if (backValue == null) {
             this.setState({
-                value: inputValue
+                backValue: inputValue,
+                displayValue: '0'
             })
         } else if (operator) {
-            const currentValue = value || 0
+            const currentValue = backValue || 0
             const newValue = CalculatorOperations[operator](currentValue, inputValue)
 
             this.setState({
-                value: newValue,
-                displayValue: String(newValue)
+                backValue: newValue,
+                displayValue: '0'
             })
         }
 
         this.setState({
-            waitingForOperand: false,
             operator: nextOperator
         })
     }
 
+    handleKeyDown = (event) => {
+        let {key} = event
+
+        if (key === 'Enter')
+            key = '='
+
+        if ((/\d/).test(key)) {
+            event.preventDefault()
+            this._number(parseInt(key, 10))
+        } else if (key in CalculatorOperations) {
+            event.preventDefault()
+            this.performOperation(key)
+        } else if (key === '=') {
+            event.preventDefault()
+            this.calculateOperation()
+        } else if (key === 'Backspace') {
+            event.preventDefault()
+            this._clearAll()
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('keydown', this.handleKeyDown)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeyDown)
+    }
+
     render() {
+        const {displayValue, backValue, operator} = this.state
         return (
-            <div className="main" >
+            <div className="main">
                 <table align="center">
                     <tr>
-                        <td colSpan="4" ><div align="right">{this.state.value}</div></td>
+                        <td colSpan="4">
+                            <div align="right">{backValue}</div>
+                        </td>
                     </tr>
                     <tr>
-                        <td colSpan="4"><div align="right">{this.state.operator}</div></td>
+                        <td colSpan="4">
+                            <div align="right">{operator}</div>
+                        </td>
                     </tr>
                     <tr>
-                        <td colSpan="4" ><input className="calcDisplay" value={this.state.displayValue} /></td>
+                        <td colSpan="4"><input className="calcDisplay" value={displayValue}/></td>
                     </tr>
                     <tr>
-                        <CalcKey onClick= {() => this.clearAll()}>C</CalcKey>
+                        <CalcKey action="C" clickHandler={this._clearAll} className = "action"/>
                         <td></td>
                         <td></td>
-                        <CalcKey onClick={() => this.performOperation('+')}>+</CalcKey>
+                        <CalcKey action="+" clickHandler={this.performOperation} className = "action"/>
                     </tr>
                     <tr>
-                        <CalcKey onClick={() => this.inputDigit(1)}>1</CalcKey>
-                        <CalcKey onClick={() => this.inputDigit(2)}>2</CalcKey>
-                        <CalcKey onClick={() => this.inputDigit(3)}>3</CalcKey>
-                        <CalcKey onClick={() => this.performOperation('-')}>–</CalcKey>
+                        <CalcKey action="1" clickHandler={this._number}/>
+                        <CalcKey action="2" clickHandler={this._number}/>
+                        <CalcKey action="3" clickHandler={this._number}/>
+                        <CalcKey action="-" clickHandler={this.performOperation} className = "action"/>
                     </tr>
                     <tr>
-                        <CalcKey  onClick={() => this.inputDigit(4)}>4</CalcKey>
-                        <CalcKey  onClick={() => this.inputDigit(5)}>5</CalcKey>
-                        <CalcKey  onClick={() => this.inputDigit(6)}>6</CalcKey>
-                        <CalcKey onClick={() => this.performOperation('*')}>*</CalcKey>
+                        <CalcKey action="4" clickHandler={this._number}/>
+                        <CalcKey action="5" clickHandler={this._number}/>
+                        <CalcKey action="6" clickHandler={this._number}/>
+                        <CalcKey action="*" clickHandler={this.performOperation} className = "action"/>
                     </tr>
                     <tr>
-                        <CalcKey onClick={() => this.inputDigit(7)}>7</CalcKey>
-                        <CalcKey onClick={() => this.inputDigit(8)}>8</CalcKey>
-                        <CalcKey onClick={() => this.inputDigit(9)}>9</CalcKey>
-                        <CalcKey onClick={() => this.performOperation('/')}>/</CalcKey>
+                        <CalcKey action="7" clickHandler={this._number}/>
+                        <CalcKey action="8" clickHandler={this._number}/>
+                        <CalcKey action="9" clickHandler={this._number}/>
+                        <CalcKey action="/" clickHandler={this.performOperation} className = "action"/>
                     </tr>
                     <tr>
                         <td></td>
-                        <CalcKey onClick={() => this.inputDigit(0)}>0</CalcKey>
+                        <CalcKey action="0" clickHandler={this._number}/>
                         <td></td>
-                        <CalcKey onClick={() => this.performOperation('=')}>=</CalcKey>
+                        <CalcKey action="=" clickHandler={this.calculateOperation} className = "action"/>
                     </tr>
                 </table>
             </div>
